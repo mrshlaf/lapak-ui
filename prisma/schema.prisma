@@ -1,0 +1,259 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                  String    @db.VarChar(100)
+  email                 String    @unique @db.VarChar(255)
+  passwordHash          String    @map("password_hash") @db.VarChar(255)
+  faculty               String?   @db.VarChar(100)
+  profilePicture        String?   @map("profile_picture") @db.Text
+  role                  String    @default("user") @db.VarChar(20) // 'user' or 'admin'
+  telegramChatId        BigInt?   @map("telegram_chat_id")
+  googleCalendarToken   String?   @map("google_calendar_token") @db.Text
+  ratingAvg             Decimal   @default(0.00) @map("rating_avg") @db.Decimal(3, 2)
+  ratingCount           Int       @default(0) @map("rating_count")
+  isActive              Boolean   @default(true) @map("is_active")
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  products              Product[]
+  reservationsAsBuyer   Reservation[] @relation("BuyerReservations")
+  transactionsAsBuyer   Transaction[] @relation("BuyerTransactions")
+  transactionsAsSeller  Transaction[] @relation("SellerTransactions")
+  reviewsGiven          Review[]      @relation("Reviewer")
+  reviewsReceived       Review[]      @relation("Reviewee")
+  posts                 Post[]
+  comments              Comment[]
+  likes                 Like[]
+  wishlists             Wishlist[]
+  chatsAsParticipantA   Chat[]        @relation("ParticipantA")
+  chatsAsParticipantB   Chat[]        @relation("ParticipantB")
+  messagesSent          Message[]
+  notifications         Notification[]
+
+  @@map("users")
+}
+
+model Product {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sellerId            String    @map("seller_id") @db.Uuid
+  title               String    @db.VarChar(255)
+  description         String?   @db.Text
+  price               Int
+  isNegotiable        Boolean   @default(false) @map("is_negotiable")
+  category            String?   @db.VarChar(20) // 'barang', 'jasa'
+  subCategory         String?   @map("sub_category") @db.VarChar(100)
+  condition           String?   @db.VarChar(20) // 'baru', 'bekas_mulus', 'bekas_normal'
+  status              String    @default("available") @db.VarChar(20) // 'available', 'reserved', 'on_progress', 'completed', 'cancelled'
+  reservationDuration Int       @default(24) @map("reservation_duration") // dalam jam
+  codLocation         String?   @map("cod_location") @db.VarChar(255)
+  facultyLocation     String?   @map("faculty_location") @db.VarChar(100)
+  viewCount           Int       @default(0) @map("view_count")
+  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  seller              User           @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  images              ProductImage[]
+  reservations        Reservation[]
+  transactions        Transaction[]
+  wishlistedBy        Wishlist[]
+  chats               Chat[]
+
+  @@map("products")
+}
+
+model ProductImage {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  productId   String   @map("product_id") @db.Uuid
+  imageUrl    String   @map("image_url") @db.Text
+  isPrimary   Boolean  @default(false) @map("is_primary")
+  orderIndex  Int      @default(0) @map("order_index")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
+
+model Reservation {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  productId   String   @map("product_id") @db.Uuid
+  buyerId     String   @map("buyer_id") @db.Uuid
+  status      String   @default("pending") @db.VarChar(30) // 'pending', 'accepted', 'rejected', 'cancelled', 'expired', 'completed'
+  expiresAt   DateTime @map("expires_at") @db.Timestamptz
+  redisKey    String?  @map("redis_key") @db.VarChar(255)
+  note        String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  product      Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  buyer        User          @relation("BuyerReservations", fields: [buyerId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@map("reservations")
+}
+
+model Transaction {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reservationId     String    @map("reservation_id") @db.Uuid
+  productId         String?   @map("product_id") @db.Uuid
+  buyerId           String?   @map("buyer_id") @db.Uuid
+  sellerId          String?   @map("seller_id") @db.Uuid
+  status            String    @default("on_progress") @db.VarChar(30) // 'on_progress', 'waiting_buyer_confirm', 'completed', 'cancelled'
+  finalPrice        Int?      @map("final_price")
+  codLocation       String?   @map("cod_location") @db.VarChar(255)
+  codScheduledAt    DateTime? @map("cod_scheduled_at") @db.Timestamptz
+  sellerConfirmedAt DateTime? @map("seller_confirmed_at") @db.Timestamptz
+  buyerConfirmedAt  DateTime? @map("buyer_confirmed_at") @db.Timestamptz
+  calendarEventId   String?   @map("calendar_event_id") @db.VarChar(255)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  reservation       Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  product           Product?    @relation(fields: [productId], references: [id], onDelete: SetNull)
+  buyer             User?       @relation("BuyerTransactions", fields: [buyerId], references: [id], onDelete: SetNull)
+  seller            User?       @relation("SellerTransactions", fields: [sellerId], references: [id], onDelete: SetNull)
+  reviews           Review[]
+
+  @@map("transactions")
+}
+
+model Review {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  transactionId String   @map("transaction_id") @db.Uuid
+  reviewerId    String?  @map("reviewer_id") @db.Uuid
+  revieweeId    String?  @map("reviewee_id") @db.Uuid
+  rating        Int      @db.SmallInt
+  comment       String?  @db.VarChar(500)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  reviewer      User?       @relation("Reviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  reviewee      User?       @relation("Reviewee", fields: [revieweeId], references: [id], onDelete: SetNull)
+
+  @@map("reviews")
+}
+
+model Post {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  authorId    String   @map("author_id") @db.Uuid
+  content     String   @db.Text
+  likeCount   Int      @default(0) @map("like_count")
+  replyCount  Int      @default(0) @map("reply_count")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  author      User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  images      PostImage[]
+  comments    Comment[]
+  likes       Like[]
+
+  @@map("posts")
+}
+
+model PostImage {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  postId      String   @map("post_id") @db.Uuid
+  imageUrl    String   @map("image_url") @db.Text
+  orderIndex  Int      @default(0) @map("order_index")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@map("post_images")
+}
+
+model Comment {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  postId      String   @map("post_id") @db.Uuid
+  authorId    String   @map("author_id") @db.Uuid
+  content     String   @db.Text
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@map("comments")
+}
+
+model Like {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  postId      String   @map("post_id") @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@map("likes")
+}
+
+model Chat {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  productId      String?   @map("product_id") @db.Uuid
+  participantAId String?   @map("participant_a") @db.Uuid
+  participantBId String?   @map("participant_b") @db.Uuid
+  lastMessage    String?   @map("last_message") @db.Text
+  lastMessageAt  DateTime? @map("last_message_at") @db.Timestamptz
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  product        Product?  @relation(fields: [productId], references: [id], onDelete: SetNull)
+  participantA   User?     @relation("ParticipantA", fields: [participantAId], references: [id], onDelete: SetNull)
+  participantB   User?     @relation("ParticipantB", fields: [participantBId], references: [id], onDelete: SetNull)
+  messages       Message[]
+
+  @@map("chats")
+}
+
+model Message {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  chatId      String   @map("chat_id") @db.Uuid
+  senderId    String?  @map("sender_id") @db.Uuid
+  content     String   @db.Text
+  isRead      Boolean  @default(false) @map("is_read")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  chat        Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender      User?    @relation(fields: [senderId], references: [id], onDelete: SetNull)
+
+  @@map("messages")
+}
+
+model Wishlist {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  productId   String   @map("product_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("wishlists")
+}
+
+model Notification {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  type        String   @db.VarChar(50)
+  title       String?  @db.VarChar(255)
+  message     String?  @db.Text
+  link        String?  @db.VarChar(255)
+  isRead      Boolean  @default(false) @map("is_read")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
