@@ -9,9 +9,11 @@ export async function GET(request: NextRequest) {
   const cacheKey = `products:${searchParams.toString()}`;
 
   try {
-    const cachedData = await redis.get(cacheKey);
-    if (cachedData) {
-      return ok(JSON.parse(cachedData));
+    if (redis) {
+      const cachedData = await redis.get(cacheKey);
+      if (cachedData) {
+        return ok(JSON.parse(cachedData));
+      }
     }
   } catch (e) {
     console.error("Redis error:", e);
@@ -82,7 +84,9 @@ export async function GET(request: NextRequest) {
   const responseData = { products, total, page, totalPages: Math.ceil(total / limit) };
 
   try {
-    await redis.set(cacheKey, JSON.stringify(responseData), "EX", 60); // Cache for 60 seconds
+    if (redis) {
+      await redis.set(cacheKey, JSON.stringify(responseData), "EX", 60); // Cache for 60 seconds
+    }
   } catch (e) {
     console.error("Redis set error:", e);
   }
@@ -144,7 +148,9 @@ export async function POST(request: NextRequest) {
     try {
       const { delByPattern, redis } = await import("@/lib/redis");
       await delByPattern("products:*");
-      await redis.del("landing:products");
+      if (redis) {
+        await redis.del("landing:products");
+      }
     } catch (e) { console.error(e); }
 
     return ok({ product: result }, 201);

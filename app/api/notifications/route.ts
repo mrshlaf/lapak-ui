@@ -8,8 +8,10 @@ export async function GET() {
   const cacheKey = `notifications:${session.userId}`;
   try {
     const { redis } = await import("@/lib/redis");
-    const cached = await redis.get(cacheKey);
-    if (cached) return ok(JSON.parse(cached));
+    if (redis) {
+      const cached = await redis.get(cacheKey);
+      if (cached) return ok(JSON.parse(cached));
+    }
   } catch (e) { console.error(e); }
 
   const [notifications, unreadCount] = await Promise.all([
@@ -27,7 +29,9 @@ export async function GET() {
   
   try {
     const { redis } = await import("@/lib/redis");
-    await redis.set(cacheKey, JSON.stringify(result), "EX", 10); // Short cache for polling
+    if (redis) {
+      await redis.set(cacheKey, JSON.stringify(result), "EX", 10); // Short cache for polling
+    }
   } catch (e) { console.error(e); }
 
   return ok(result);

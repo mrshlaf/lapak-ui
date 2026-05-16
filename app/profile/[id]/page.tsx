@@ -14,8 +14,10 @@ export default async function ProfilePage({ params }: Params) {
   let profileData;
 
   try {
-    const cached = await redis.get(cacheKey);
-    if (cached) profileData = JSON.parse(cached);
+    if (redis) {
+      const cached = await redis.get(cacheKey);
+      if (cached) profileData = JSON.parse(cached);
+    }
   } catch (e) {
     console.error("Redis error:", e);
   }
@@ -54,7 +56,9 @@ export default async function ProfilePage({ params }: Params) {
     ]);
 
     try {
-      await redis.set(cacheKey, JSON.stringify(profileData), "EX", 60);
+      if (redis) {
+        await redis.set(cacheKey, JSON.stringify(profileData), "EX", 60);
+      }
     } catch (e) {
       console.error("Redis set error:", e);
     }

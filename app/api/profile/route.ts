@@ -47,8 +47,10 @@ export async function PUT(request: Request) {
     // Invalidate Redis Cache
     try {
       const { redis } = await import("@/lib/redis");
-      await redis.del(`profile:${session.userId}`);
-      await redis.del(`dashboard:user:${session.userId}`);
+      if (redis) {
+        await redis.del(`profile:${session.userId}`);
+        await redis.del(`dashboard:user:${session.userId}`);
+      }
     } catch (e) { console.error(e); }
 
 

@@ -29,8 +29,10 @@ export default async function MyProductsPage() {
   let products;
 
   try {
-    const cached = await redis.get(cacheKey);
-    if (cached) products = JSON.parse(cached);
+    if (redis) {
+      const cached = await redis.get(cacheKey);
+      if (cached) products = JSON.parse(cached);
+    }
   } catch (e) {
     console.error("Redis get error:", e);
   }
@@ -46,7 +48,9 @@ export default async function MyProductsPage() {
     });
 
     try {
-      await redis.set(cacheKey, JSON.stringify(products), "EX", 30);
+      if (redis) {
+        await redis.set(cacheKey, JSON.stringify(products), "EX", 30);
+      }
     } catch (e) {
       console.error("Redis set error:", e);
     }

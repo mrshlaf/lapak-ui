@@ -21,8 +21,10 @@ export default async function AdminPage() {
   const cacheKey = "admin:stats";
   let stats;
   try {
-    const cachedStats = await redis.get(cacheKey);
-    if (cachedStats) stats = JSON.parse(cachedStats);
+    if (redis) {
+      const cachedStats = await redis.get(cacheKey);
+      if (cachedStats) stats = JSON.parse(cachedStats);
+    }
   } catch (e) {
     console.error("Redis get error:", e);
   }
@@ -37,7 +39,9 @@ export default async function AdminPage() {
       prisma.user.findMany({ take: 10, orderBy: { createdAt: "desc" }, select: { id: true, name: true, email: true, faculty: true, role: true, isActive: true, createdAt: true } }),
     ]);
     try {
-      await redis.set(cacheKey, JSON.stringify(stats), "EX", 300); // 5 min cache
+      if (redis) {
+        await redis.set(cacheKey, JSON.stringify(stats), "EX", 300); // 5 min cache
+      }
     } catch (e) {
       console.error("Redis set error:", e);
     }

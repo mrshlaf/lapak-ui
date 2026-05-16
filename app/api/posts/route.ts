@@ -9,9 +9,11 @@ export async function GET(request: NextRequest) {
   const cacheKey = `posts:${searchParams.toString()}`;
 
   try {
-    const cachedData = await redis.get(cacheKey);
-    if (cachedData) {
-      return ok(JSON.parse(cachedData));
+    if (redis) {
+      const cachedData = await redis.get(cacheKey);
+      if (cachedData) {
+        return ok(JSON.parse(cachedData));
+      }
     }
   } catch (e) {
     console.error("Redis error:", e);
@@ -37,7 +39,9 @@ export async function GET(request: NextRequest) {
   const responseData = { posts, total, page, totalPages: Math.ceil(total / limit) };
 
   try {
-    await redis.set(cacheKey, JSON.stringify(responseData), "EX", 30); // Cache for 30 seconds
+    if (redis) {
+      await redis.set(cacheKey, JSON.stringify(responseData), "EX", 30); // Cache for 30 seconds
+    }
   } catch (e) {
     console.error("Redis set error:", e);
   }

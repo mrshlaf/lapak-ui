@@ -28,8 +28,10 @@ async function getUser() {
 
   const cacheKey = `dashboard:user:${session.userId}`;
   try {
-    const cached = await redis.get(cacheKey);
-    if (cached) return JSON.parse(cached);
+    if (redis) {
+      const cached = await redis.get(cacheKey);
+      if (cached) return JSON.parse(cached);
+    }
   } catch (e) {
     console.error("Redis error:", e);
   }
@@ -44,7 +46,11 @@ async function getUser() {
   });
 
   if (user) {
-    try { await redis.set(cacheKey, JSON.stringify(user), "EX", 15); } catch (e) { console.error(e); }
+    try { 
+      if (redis) {
+        await redis.set(cacheKey, JSON.stringify(user), "EX", 15); 
+      }
+    } catch (e) { console.error(e); }
   }
   return user;
 }
@@ -54,14 +60,18 @@ export default async function DashboardPage() {
   if (!user) redirect("/login");
 
   const countsCacheKey = `dashboard:counts:${user.id}`;
-  let counts;
-  try {
-    const cachedCounts = await redis.get(countsCacheKey);
-    if (cachedCounts) counts = JSON.parse(cachedCounts);
-  } catch (e) { console.error(e); }
+  
+  // Try parallel fetch for cache and other data if possible
+  const [unreadNotificationsCount, unreadMessagesCount] = await (async () => {
+    try {
+      const { redis } = await import("@/lib/redis");
+      if (redis) {
+        const cachedCounts = await redis.get(countsCacheKey);
+        if (cachedCounts) return JSON.parse(cachedCounts);
+      }
+    } catch (e) { console.error(e); }
 
-  if (!counts) {
-    counts = await Promise.all([
+    const counts = await Promise.all([
       prisma.notification.count({ where: { userId: user.id, isRead: false } }),
       prisma.message.count({
         where: {
@@ -71,10 +81,16 @@ export default async function DashboardPage() {
         },
       }),
     ]);
-    try { await redis.set(countsCacheKey, JSON.stringify(counts), "EX", 15); } catch (e) { console.error(e); }
-  }
 
-  const [unreadNotificationsCount, unreadMessagesCount] = counts;
+    try {
+      const { redis } = await import("@/lib/redis");
+      if (redis) {
+        await redis.set(countsCacheKey, JSON.stringify(counts), "EX", 15);
+      }
+    } catch (e) { console.error(e); }
+
+    return counts;
+  })();
 
   const bentoCards = [
     { href: "/marketplace", label: "Katalog Marketplace", sub: "Barang bekas & jasa mahasiswa UI.", icon: <ShoppingBagIcon />, wide: true, yellow: false },

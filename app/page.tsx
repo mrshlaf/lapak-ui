@@ -13,8 +13,10 @@ export default async function Home() {
   let latestProducts;
 
   try {
-    const cached = await redis.get(cacheKey);
-    if (cached) latestProducts = JSON.parse(cached);
+    if (redis) {
+      const cached = await redis.get(cacheKey);
+      if (cached) latestProducts = JSON.parse(cached);
+    }
   } catch (e) {
     console.error("Redis get error:", e);
   }
@@ -31,7 +33,9 @@ export default async function Home() {
     });
 
     try {
-      await redis.set(cacheKey, JSON.stringify(latestProducts), "EX", 60);
+      if (redis) {
+        await redis.set(cacheKey, JSON.stringify(latestProducts), "EX", 60);
+      }
     } catch (e) {
       console.error("Redis set error:", e);
     }

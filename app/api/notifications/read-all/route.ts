@@ -13,7 +13,9 @@ export async function PUT() {
   // Invalidate Cache
   try {
     const { redis } = await import("@/lib/redis");
-    await redis.del(`notifications:${session.userId}`);
+    if (redis) {
+      await redis.del(`notifications:${session.userId}`);
+    }
   } catch (e) { console.error(e); }
 
   return ok({ message: "Semua notifikasi ditandai sudah dibaca." });
