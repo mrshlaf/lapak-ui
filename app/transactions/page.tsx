@@ -55,7 +55,9 @@ export default function TransactionsPage() {
           <div className="space-y-3">{Array(3).fill(0).map((_, i) => <div key={i} className="bg-white h-24 rounded-2xl animate-pulse" />)}</div>
         ) : transactions.length === 0 ? (
           <div className="text-center py-24 bg-white rounded-3xl border border-[#E5E5E5]">
-            <div className="text-5xl mb-4">📋</div>
+            <div className="mb-4 text-gray-400">
+              <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+            </div>
             <h3 className="text-xl font-semibold text-[#0A0A0A] mb-2">Belum ada transaksi</h3>
           </div>
         ) : (
@@ -68,7 +70,9 @@ export default function TransactionsPage() {
                   <div className="w-14 h-14 bg-[#F5F5F5] rounded-xl overflow-hidden shrink-0">
                     {t.product?.images[0] ? (
                       <img src={t.product.images[0].imageUrl} alt={t.product.title} className="w-full h-full object-cover" />
-                    ) : <div className="w-full h-full flex items-center justify-center text-2xl">📦</div>}
+                    ) : <div className="w-full h-full flex items-center justify-center text-[#ABABAB]">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                    </div>}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-[#0A0A0A] truncate">{t.product?.title ?? "Produk Dihapus"}</h3>

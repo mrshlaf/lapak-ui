@@ -34,20 +34,29 @@ export default function AdminUsersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F5F5]">
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-[#E5E5E5] h-16 flex items-center px-6">
-        <div className="max-w-6xl w-full mx-auto flex items-center gap-4">
-          <Link href="/admin" className="text-[#6B6B6B] hover:text-[#0A0A0A] text-sm">← Admin</Link>
-          <span className="font-bold text-lg text-[#0A0A0A]">Manajemen User</span>
+    <div className="pt-28 max-w-7xl mx-auto px-6 py-8">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-10">
+        <div>
+          <h1 className="text-4xl font-black text-[#0A0A0A] tracking-tighter flex items-center gap-4">
+            <Link href="/admin" className="p-2 bg-white border border-[#E5E5E5] rounded-xl hover:border-[#0A0A0A] transition-all">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
+            </Link>
+            User Manajemen
+          </h1>
+          <p className="text-[#6B6B6B] font-medium mt-2">{total} user terdaftar di platform.</p>
         </div>
-      </nav>
-
-      <div className="pt-16 max-w-6xl mx-auto px-6 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-[#0A0A0A]">User ({total})</h1>
-          <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Cari nama/email..."
-            className="bg-white border border-[#E5E5E5] rounded-full px-4 py-2 text-sm focus:outline-none focus:border-[#0A0A0A] w-64" />
+        <div className="relative w-full md:w-80">
+          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[#ABABAB]">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+          </div>
+          <input 
+            value={search} 
+            onChange={e => { setSearch(e.target.value); setPage(1); }} 
+            placeholder="Cari nama, email, atau fakultas..."
+            className="w-full bg-white border border-[#E5E5E5] rounded-2xl pl-11 pr-4 py-3.5 text-sm focus:outline-none focus:border-[#0A0A0A] focus:shadow-md transition-all font-medium" 
+          />
         </div>
+      </div>
 
         <div className="bg-white border border-[#E5E5E5] rounded-2xl overflow-hidden">
           <table className="w-full text-sm">
@@ -99,7 +108,6 @@ export default function AdminUsersPage() {
           {page > 1 && <button onClick={() => setPage(p => p - 1)} className="px-4 py-2 border border-[#E5E5E5] rounded-full text-sm hover:border-[#0A0A0A]">← Sebelumnya</button>}
           {users.length === 20 && <button onClick={() => setPage(p => p + 1)} className="px-4 py-2 bg-[#0A0A0A] text-white rounded-full text-sm">Selanjutnya →</button>}
         </div>
-      </div>
     </div>
   );
 }

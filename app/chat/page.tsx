@@ -53,11 +53,11 @@ export default function ChatPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#F5F5F5]">
+    <div className="min-h-screen bg-[#FAFAFA] font-sans selection:bg-[#FBDA00] selection:text-black">
       <PageHeader title="Pesan Masuk" maxWidth="max-w-3xl" />
 
-      <div className="pt-24 max-w-3xl w-full mx-auto px-6 pb-16 flex-1 flex flex-col">
-        <h1 className="text-2xl font-bold text-[#0A0A0A] mb-6">Chat Saya</h1>
+      <div className="pt-28 max-w-3xl w-full mx-auto px-6 pb-16 flex-1 flex flex-col">
+        <h1 className="text-4xl font-black text-[#0A0A0A] tracking-tighter mb-8">Chat Saya</h1>
 
         {loading ? (
           <div className="space-y-3">

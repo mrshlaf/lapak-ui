@@ -1,10 +1,22 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, ok, err } from "@/lib/api";
+import { redis } from "@/lib/redis";
 
 // GET /api/posts
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
+  const cacheKey = `posts:${searchParams.toString()}`;
+
+  try {
+    const cachedData = await redis.get(cacheKey);
+    if (cachedData) {
+      return ok(JSON.parse(cachedData));
+    }
+  } catch (e) {
+    console.error("Redis error:", e);
+  }
+
   const page = parseInt(searchParams.get("page") ?? "1");
   const limit = parseInt(searchParams.get("limit") ?? "20");
 
@@ -22,7 +34,15 @@ export async function GET(request: NextRequest) {
     prisma.post.count(),
   ]);
 
-  return ok({ posts, total, page, totalPages: Math.ceil(total / limit) });
+  const responseData = { posts, total, page, totalPages: Math.ceil(total / limit) };
+
+  try {
+    await redis.set(cacheKey, JSON.stringify(responseData), "EX", 30); // Cache for 30 seconds
+  } catch (e) {
+    console.error("Redis set error:", e);
+  }
+
+  return ok(responseData);
 }
 
 // POST /api/posts
@@ -55,6 +75,12 @@ export async function POST(request: NextRequest) {
         images: true,
       },
     });
+
+    // Invalidate Redis Cache
+    try {
+      const { delByPattern } = await import("@/lib/redis");
+      await delByPattern("posts:*");
+    } catch (e) { console.error(e); }
 
     return ok({ post: result }, 201);
   } catch (e) {

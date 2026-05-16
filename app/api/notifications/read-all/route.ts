@@ -10,5 +10,11 @@ export async function PUT() {
     data: { isRead: true },
   });
 
+  // Invalidate Cache
+  try {
+    const { redis } = await import("@/lib/redis");
+    await redis.del(`notifications:${session.userId}`);
+  } catch (e) { console.error(e); }
+
   return ok({ message: "Semua notifikasi ditandai sudah dibaca." });
 }

@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "postinstall": "prisma generate",
     "telegram-poll": "node scripts/telegram-poll.js"
   },
   "dependencies": {
@@ -14,6 +15,7 @@
     "@prisma/client": "^7.8.0",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.2",
+    "ioredis": "^5.10.1",
     "jose": "^6.2.3",
     "jsonwebtoken": "^9.0.3",
     "next": "16.2.5",

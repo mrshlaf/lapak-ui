@@ -30,16 +30,18 @@ export default function AdminTransactionsPage() {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   return (
-    <div className="min-h-screen bg-[#F5F5F5]">
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-[#E5E5E5] h-16 flex items-center px-6">
-        <div className="max-w-6xl w-full mx-auto flex items-center gap-4">
-          <Link href="/admin" className="text-[#6B6B6B] hover:text-[#0A0A0A] text-sm">← Admin</Link>
-          <span className="font-bold text-lg text-[#0A0A0A]">Pantau Transaksi</span>
+    <div className="pt-28 max-w-7xl mx-auto px-6 py-8">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-10">
+        <div>
+          <h1 className="text-4xl font-black text-[#0A0A0A] tracking-tighter flex items-center gap-4">
+            <Link href="/admin" className="p-2 bg-white border border-[#E5E5E5] rounded-xl hover:border-[#0A0A0A] transition-all">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
+            </Link>
+            Pantau Transaksi
+          </h1>
+          <p className="text-[#6B6B6B] font-medium mt-2">{transactions.length} transaksi terdaftar dalam sistem.</p>
         </div>
-      </nav>
-
-      <div className="pt-16 max-w-6xl mx-auto px-6 py-8">
-        <h1 className="text-2xl font-bold text-[#0A0A0A] mb-6">Semua Transaksi ({transactions.length})</h1>
+      </div>
 
         <div className="bg-white border border-[#E5E5E5] rounded-2xl overflow-hidden">
           <table className="w-full text-sm">
@@ -84,6 +86,5 @@ export default function AdminTransactionsPage() {
           </table>
         </div>
       </div>
-    </div>
   );
 }

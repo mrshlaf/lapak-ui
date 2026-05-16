@@ -1,10 +1,22 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, ok, err } from "@/lib/api";
+import { redis } from "@/lib/redis";
 
 // GET /api/products — list dengan filter & pagination
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
+  const cacheKey = `products:${searchParams.toString()}`;
+
+  try {
+    const cachedData = await redis.get(cacheKey);
+    if (cachedData) {
+      return ok(JSON.parse(cachedData));
+    }
+  } catch (e) {
+    console.error("Redis error:", e);
+  }
+
   const page = parseInt(searchParams.get("page") ?? "1");
   const limit = parseInt(searchParams.get("limit") ?? "12");
   const category = searchParams.get("category");
@@ -67,7 +79,15 @@ export async function GET(request: NextRequest) {
     prisma.product.count({ where }),
   ]);
 
-  return ok({ products, total, page, totalPages: Math.ceil(total / limit) });
+  const responseData = { products, total, page, totalPages: Math.ceil(total / limit) };
+
+  try {
+    await redis.set(cacheKey, JSON.stringify(responseData), "EX", 60); // Cache for 60 seconds
+  } catch (e) {
+    console.error("Redis set error:", e);
+  }
+
+  return ok(responseData);
 }
 
 // POST /api/products — buat produk baru
@@ -119,6 +139,13 @@ export async function POST(request: NextRequest) {
       where: { id: product.id },
       include: { images: true },
     });
+
+    // Invalidate Redis Cache for lists and landing page
+    try {
+      const { delByPattern, redis } = await import("@/lib/redis");
+      await delByPattern("products:*");
+      await redis.del("landing:products");
+    } catch (e) { console.error(e); }
 
     return ok({ product: result }, 201);
   } catch (e) {

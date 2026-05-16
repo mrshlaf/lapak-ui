@@ -59,7 +59,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
       await sendNotification({
         userId: transaction.sellerId!,
         type: "COD_COMPLETED",
-        title: "Transaksi selesai! 🎉",
+        title: "Transaksi selesai!",
         message: `Buyer mengkonfirmasi transaksi "${transaction.product?.title}"`,
         link: `/transactions/${id}`,
       });

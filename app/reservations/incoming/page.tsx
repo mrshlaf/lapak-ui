@@ -53,7 +53,9 @@ export default function IncomingReservationsPage() {
           <div className="space-y-3">{Array(3).fill(0).map((_, i) => <div key={i} className="bg-white h-32 rounded-2xl animate-pulse" />)}</div>
         ) : reservations.length === 0 ? (
           <div className="text-center py-24 bg-white rounded-3xl border border-[#E5E5E5]">
-            <div className="text-5xl mb-4">📬</div>
+            <div className="mb-4 text-gray-400">
+              <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>
+            </div>
             <h3 className="text-xl font-semibold text-[#0A0A0A] mb-2">Belum ada reservasi</h3>
             <p className="text-[#6B6B6B]">Reservasi dari buyer akan muncul di sini</p>
           </div>
@@ -69,7 +71,9 @@ export default function IncomingReservationsPage() {
                     <div className="w-16 h-16 bg-[#F5F5F5] rounded-xl overflow-hidden shrink-0">
                       {r.product.images[0] ? (
                         <img src={r.product.images[0].imageUrl} alt={r.product.title} className="w-full h-full object-cover" />
-                      ) : <div className="w-full h-full flex items-center justify-center text-2xl">📦</div>}
+                      ) : <div className="w-full h-full flex items-center justify-center text-[#ABABAB]">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                      </div>}
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-1">

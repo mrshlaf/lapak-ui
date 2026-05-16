@@ -29,16 +29,18 @@ export default function AdminPostsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F5F5]">
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-[#E5E5E5] h-16 flex items-center px-6">
-        <div className="max-w-4xl w-full mx-auto flex items-center gap-4">
-          <Link href="/admin" className="text-[#6B6B6B] hover:text-[#0A0A0A] text-sm">← Admin</Link>
-          <span className="font-bold text-lg text-[#0A0A0A]">Moderasi Post</span>
+    <div className="pt-28 max-w-4xl mx-auto px-6 py-8">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-10">
+        <div>
+          <h1 className="text-4xl font-black text-[#0A0A0A] tracking-tighter flex items-center gap-4">
+            <Link href="/admin" className="p-2 bg-white border border-[#E5E5E5] rounded-xl hover:border-[#0A0A0A] transition-all">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
+            </Link>
+            Moderasi Post
+          </h1>
+          <p className="text-[#6B6B6B] font-medium mt-2">{posts.length} postingan komunitas aktif.</p>
         </div>
-      </nav>
-
-      <div className="pt-16 max-w-4xl mx-auto px-6 py-8">
-        <h1 className="text-2xl font-bold text-[#0A0A0A] mb-6">Postingan Komunitas ({posts.length})</h1>
+      </div>
         <div className="space-y-3">
           {loading ? Array(5).fill(0).map((_, i) => <div key={i} className="bg-white h-24 rounded-2xl animate-pulse" />) :
             posts.map((p) => (
@@ -50,7 +52,7 @@ export default function AdminPostsPage() {
                     <span className="text-xs text-[#ABABAB]">· {new Date(p.createdAt).toLocaleDateString("id-ID")}</span>
                   </div>
                   <p className="text-sm text-[#6B6B6B] line-clamp-2">{p.content}</p>
-                  <p className="text-xs text-[#ABABAB] mt-1">{p.likeCount} · 💬 {p._count.comments}</p>
+                  <p className="text-xs text-[#ABABAB] mt-1 flex items-center gap-1">{p.likeCount} · <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg> {p._count.comments}</p>
                 </div>
                 <button onClick={() => deletePost(p.id)} className="text-sm text-[#EF4444] border border-[#EF4444] px-3 py-1.5 rounded-full hover:bg-[#EF4444] hover:text-white transition-colors shrink-0 h-fit">
                   Hapus
@@ -58,7 +60,6 @@ export default function AdminPostsPage() {
               </div>
             ))}
         </div>
-      </div>
     </div>
   );
 }

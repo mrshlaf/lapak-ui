@@ -45,7 +45,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
       await sendNotification({
         userId: reservation.buyerId,
         type: "RESERVATION_ACCEPTED",
-        title: "Reservasimu diterima! 🎉",
+        title: "Reservasimu diterima!",
         message: `Seller menerima reservasi "${reservation.product.title}"`,
         link: `/reservations/outgoing`,
       });

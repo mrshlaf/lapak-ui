@@ -1,36 +1,122 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Lapak UI — Marketplace & Community Platform for UI Students
 
-## Getting Started
+[![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+[![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=for-the-badge&logo=prisma)](https://www.prisma.io/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Managed-336791?style=for-the-badge&logo=postgresql)](https://www.postgresql.org/)
+[![Redis](https://img.shields.io/badge/Redis-Upstash-DC382D?style=for-the-badge&logo=redis)](https://upstash.com/)
 
-First, run the development server:
+**Lapak UI** adalah platform marketplace dan social community berbasis web yang dirancang khusus untuk mahasiswa Universitas Indonesia. Platform ini menyatukan tiga ekosistem dalam satu produk: marketplace barang & jasa, sistem reservasi COD terstruktur, dan social feed komunitas kampus.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🌟 Vision & Mission
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Menjadi platform digital mahasiswa UI yang paling relevan — tempat bertransaksi, berinteraksi, dan membangun komunitas dalam satu ekosistem kampus yang modern, transparan, dan terpercaya.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🚀 Key Features
 
-## Learn More
+### 🛒 Marketplace System
+- **Barang & Jasa:** Jual beli barang bekas atau tawarkan jasa profesional mahasiswa.
+- **Advanced Filtering:** Cari berdasarkan kategori, rentang harga, hingga fakultas seller.
+- **Wishlist:** Simpan produk impian untuk dibeli nanti.
 
-To learn more about Next.js, take a look at the following resources:
+### ⏳ Reservation System (Built with Redis)
+- **Anti-Ghosting Timer:** Sistem reservasi COD dengan timer otomatis (2j/6j/12j/24j) yang ditenagai oleh Redis TTL.
+- **Status "Reserved":** Memberikan sinyal trust kepada pembeli lain tanpa mematikan listing.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 💬 Social & Community Feed
+- **Campus Base:** Timeline publik untuk berbagi info, mencari barang, atau sekadar berinteraksi.
+- **Realtime Chat:** Komunikasi langsung antara buyer dan seller menggunakan Supabase Realtime.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 🔔 Multi-Channel Notifications
+- **In-App:** Notifikasi real-time di dalam aplikasi.
+- **Telegram Bot:** Dapatkan update transaksi langsung ke ponsel Anda.
+- **Email (Resend):** Rekap transaksi dan reservasi penting via email.
+- **Google Calendar:** Otomatis membuat jadwal COD di kalender Anda.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🛠️ Technical Stack
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Framework:** Next.js 14 (App Router)
+- **Database:** PostgreSQL (Supabase)
+- **ORM:** Prisma
+- **Caching & Timers:** Redis (Upstash)
+- **Realtime:** Supabase Realtime (WebSockets)
+- **Styling:** Tailwind CSS + shadcn/ui
+- **Auth:** Custom Session-based Auth with Bcrypt
+- **Deployment:** Vercel
+
+---
+
+## 📊 Database Schema
+
+Project ini menggunakan skema basis data relasional yang kompleks dan ter-normalisasi (3NF):
+
+- **Users:** Manajemen akun & profil mahasiswa.
+- **Products:** Listing barang/jasa dengan relasi multi-image.
+- **Reservations & Transactions:** Alur logis dari booking hingga COD selesai.
+- **Posts & Comments:** Struktur social graph untuk community feed.
+- **Notifications:** Sistem antrean notifikasi multi-channel.
+
+---
+
+## 💻 Getting Started
+
+### Prerequisites
+- Node.js 18+
+- PostgreSQL database (local or cloud)
+- Redis instance (Upstash recommended)
+
+### Installation
+
+1. Clone repository:
+   ```bash
+   git clone https://github.com/username/lapak-ui.git
+   cd lapak-ui
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Setup Environment Variables:
+   Buat file `.env` di root directory dan isi variabel berikut:
+   ```env
+   DATABASE_URL="postgresql://..."
+   REDIS_URL="redis://..."
+   RESEND_API_KEY="re_..."
+   TELEGRAM_BOT_TOKEN="..."
+   NEXT_PUBLIC_APP_URL="http://localhost:3000"
+   ```
+
+4. Database Migration:
+   ```bash
+   npx prisma migrate dev
+   ```
+
+5. Run Development Server:
+   ```bash
+   npm run dev
+   ```
+
+---
+
+## 🎨 Design Philosophy: Apple-Grade Minimalist
+
+Lapak UI mengusung bahasa desain yang bersih, premium, dan intuitif:
+- **Less is More:** Hanya menampilkan elemen yang fungsional.
+- **Yellow Accent (#FBDA00):** Warna kuning "Makara" hanya digunakan untuk elemen krusial (CTA, status aktif).
+- **Monochrome Foundation:** Dasar hitam-putih untuk memberikan kesan profesional dan modern.
+
+---
+
+## 👨‍🏫 Project Context
+
+Project ini dibangun sebagai tugas akhir **Praktikum Sistem Basis Data, FTUI 2025/2026**. Fokus utama adalah pada desain skema basis data yang kuat, penggunaan Redis untuk real-time state management, dan integrasi multi-channel API.
+
+---
+
+Developed with ❤️ for Universitas Indonesia.

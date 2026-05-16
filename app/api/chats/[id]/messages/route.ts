@@ -103,7 +103,7 @@ export async function POST(request: NextRequest, { params }: Params) {
       await sendNotification({
         userId: recipientId,
         type: "CHAT_MESSAGE",
-        title: `💬 Pesan baru dari ${message.sender?.name || "Seseorang"}`,
+        title: `Pesan baru dari ${message.sender?.name || "Seseorang"}`,
         message: content.trim(),
         link: `/chat/${chatId}`,
       }).catch((err) => console.error("[CHAT_TELEGRAM_NOTIF_ERROR]", err));

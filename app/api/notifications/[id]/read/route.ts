@@ -13,5 +13,12 @@ export async function PUT(_: NextRequest, { params }: Params) {
   if (!notif || notif.userId !== session.userId) return err("Notifikasi tidak ditemukan.", 404);
 
   await prisma.notification.update({ where: { id }, data: { isRead: true } });
+
+  // Invalidate Cache
+  try {
+    const { redis } = await import("@/lib/redis");
+    await redis.del(`notifications:${session.userId}`);
+  } catch (e) { console.error(e); }
+
   return ok({ message: "Notifikasi ditandai sudah dibaca." });
 }

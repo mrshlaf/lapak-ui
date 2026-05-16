@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               chat_id: chatId,
-              text: "🎉 *Selamat!*\n\nAkun Lapak UI Anda telah *berhasil dihubungkan* dengan bot ini! Sekarang Anda akan menerima notifikasi transaksi secara langsung dan realtime di sini. 🔔",
+              text: "Selamat!\n\nAkun Lapak UI Anda telah *berhasil dihubungkan* dengan bot ini! Sekarang Anda akan menerima notifikasi transaksi secara langsung dan realtime di sini.",
               parse_mode: "Markdown",
             }),
           });
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               chat_id: chatId,
-              text: "⚠️ *Gagal Menghubungkan*\n\nKode verifikasi salah, tidak valid, atau sudah kedaluwarsa (berlaku 10 menit).\n\nSilakan kembali ke halaman Profil Lapak UI, muat ulang halaman, klik tombol 'Hubungkan Telegram' untuk membuat kode baru, lalu klik tautannya kembali.",
+              text: "Gagal Menghubungkan\n\nKode verifikasi salah, tidak valid, atau sudah kedaluwarsa (berlaku 10 menit).\n\nSilakan kembali ke halaman Profil Lapak UI, muat ulang halaman, klik tombol 'Hubungkan Telegram' untuk membuat kode baru, lalu klik tautannya kembali.",
               parse_mode: "Markdown",
             }),
           });

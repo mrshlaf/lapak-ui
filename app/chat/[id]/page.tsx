@@ -37,12 +37,12 @@ export default function ChatDetailPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const fetchDetails = useCallback(async () => {
+  const fetchDetails = useCallback(async (signal?: AbortSignal) => {
     try {
       const [meRes, chatListRes, msgRes] = await Promise.all([
-        fetch("/api/auth/me"),
-        fetch("/api/chats"),
-        fetch(`/api/chats/${chatId}/messages`),
+        fetch("/api/auth/me", { signal }),
+        fetch("/api/chats", { signal }),
+        fetch(`/api/chats/${chatId}/messages`, { signal }),
       ]);
 
       const meData = await meRes.json();
@@ -58,37 +58,49 @@ export default function ChatDetailPage() {
         const msgData = await msgRes.json();
         setMessages(msgData.messages ?? []);
       }
-    } catch (err) {
-      console.error("Gagal mengambil detail chat:", err);
+    } catch (err: any) {
+      if (err?.name !== "AbortError") {
+        console.error("Gagal mengambil detail chat:", err);
+      }
     } finally {
       setLoading(false);
     }
   }, [chatId]);
 
   useEffect(() => {
-    fetchDetails();
+    const controller = new AbortController();
+    fetchDetails(controller.signal);
+    return () => controller.abort();
   }, [fetchDetails]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  // Set up auto-refresh polling every 4 seconds to simulate realtime chat
+  // Auto-refresh polling every 5 seconds with AbortController cleanup
   useEffect(() => {
     if (!chatId) return;
+    let controller: AbortController | null = null;
+
     const interval = setInterval(async () => {
+      controller = new AbortController();
       try {
-        const res = await fetch(`/api/chats/${chatId}/messages`);
+        const res = await fetch(`/api/chats/${chatId}/messages`, { signal: controller.signal });
         if (res.ok) {
           const data = await res.json();
           setMessages(data.messages ?? []);
         }
-      } catch (err) {
-        console.error("Gagal polling pesan:", err);
+      } catch (err: any) {
+        if (err?.name !== "AbortError") {
+          console.error("Gagal polling pesan:", err);
+        }
       }
-    }, 4000);
+    }, 5000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      controller?.abort();
+    };
   }, [chatId]);
 
   const handleSend = async (e: React.FormEvent) => {

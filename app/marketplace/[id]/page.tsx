@@ -2,9 +2,9 @@ import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { redis } from "@/lib/redis";
 import { Footer } from "@/components/Footer";
 import { verifySession } from "@/lib/auth";
-import { NotificationBell } from "@/components/NotificationBell";
 import ReserveButton from "./ReserveButton";
 import WishlistButton from "./WishlistButton";
 import ChatButton from "./ChatButton";
@@ -32,15 +32,35 @@ const CONDITION_MAP: Record<string, string> = {
 export default async function ProductDetailPage({ params }: Params) {
   const { id } = await params;
 
-  const product = await prisma.product.findUnique({
-    where: { id },
-    include: {
-      seller: {
-        select: { id: true, name: true, faculty: true, profilePicture: true, ratingAvg: true, ratingCount: true, createdAt: true },
+  const cacheKey = `product:${id}`;
+  let product;
+  
+  try {
+    const cached = await redis.get(cacheKey);
+    if (cached) product = JSON.parse(cached);
+  } catch (e) {
+    console.error("Redis get error:", e);
+  }
+
+  if (!product) {
+    product = await prisma.product.findUnique({
+      where: { id },
+      include: {
+        seller: {
+          select: { id: true, name: true, faculty: true, profilePicture: true, ratingAvg: true, ratingCount: true, createdAt: true },
+        },
+        images: { orderBy: { orderIndex: "asc" } },
       },
-      images: { orderBy: { orderIndex: "asc" } },
-    },
-  });
+    });
+
+    if (product) {
+      try {
+        await redis.set(cacheKey, JSON.stringify(product), "EX", 30);
+      } catch (e) {
+        console.error("Redis set error:", e);
+      }
+    }
+  }
 
   if (!product) notFound();
 
@@ -81,68 +101,8 @@ export default async function ProductDetailPage({ params }: Params) {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F5F5] flex flex-col justify-between">
+    <div className="min-h-screen bg-[#FAFAFA] flex flex-col justify-between font-sans selection:bg-[#FBDA00] selection:text-black">
       <div className="pb-16">
-      {/* Premium Navbar - Konsisten dengan Dashboard */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-[#E5E5E5] h-16 flex items-center px-6 shadow-sm">
-        <div className="max-w-7xl w-full mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-4">
-              <Link href="/marketplace" className="text-[#6B6B6B] hover:text-[#0A0A0A] transition-all text-sm font-semibold flex items-center gap-1.5 group">
-                <svg className="w-3.5 h-3.5 text-[#6B6B6B] group-hover:text-[#0A0A0A] group-hover:-translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-                </svg> Kembali
-              </Link>
-              <div className="h-4 w-px bg-[#E5E5E5]" />
-              <img src="/images/logo-ui.png" alt="Logo UI" className="h-8 w-auto object-contain" />
-              <span className="font-extrabold text-lg tracking-tight text-[#0A0A0A]">Lapak UI</span>
-            </div>
-
-            {/* Easy Access Links - Ditambahkan agar konsisten dengan Dashboard */}
-            {isLoggedIn && (
-              <div className="hidden md:flex items-center space-x-6 border-l border-[#E5E5E5] pl-6">
-                <Link href="/marketplace" className="text-sm font-bold text-[#6B6B6B] hover:text-[#0A0A0A] hover:bg-[#F5F5F5] px-3 py-1.5 rounded-full transition-all">
-                  Katalog
-                </Link>
-                <Link href="/sell" className="text-sm font-bold text-[#6B6B6B] hover:text-[#0A0A0A] hover:bg-[#F5F5F5] px-3 py-1.5 rounded-full transition-all">
-                  Jual
-                </Link>
-                <Link href="/community" className="text-sm font-bold text-[#6B6B6B] hover:text-[#0A0A0A] hover:bg-[#F5F5F5] px-3 py-1.5 rounded-full transition-all">
-                  Komunitas
-                </Link>
-                <Link href="/chat" className="text-sm font-bold text-[#6B6B6B] hover:text-[#0A0A0A] hover:bg-[#F5F5F5] px-3 py-1.5 rounded-full transition-all flex items-center gap-1.5 relative">
-                  Chat
-                  {unreadMessagesCount > 0 && (
-                    <span className="w-1.5 h-1.5 bg-[#EF4444] rounded-full" />
-                  )}
-                </Link>
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center gap-4">
-            {isLoggedIn && currentUser ? (
-              <>
-                <NotificationBell />
-                <Link href="/profile" className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-[#FBDA00] rounded-full flex items-center justify-center text-sm font-bold text-black border border-black/10 hover:opacity-90 transition-all">
-                    {currentUser.name.charAt(0).toUpperCase()}
-                  </div>
-                </Link>
-              </>
-            ) : (
-              <div className="flex items-center gap-3">
-                <Link href="/login" className="text-sm font-medium text-[#6B6B6B] hover:text-[#0A0A0A] transition-colors">
-                  Masuk
-                </Link>
-                <Link href="/register" className="text-xs font-bold bg-[#FBDA00] text-[#000000] px-4 py-2 rounded-full hover:bg-[#FACC15] transition-colors">
-                  Daftar
-                </Link>
-              </div>
-            )}
-          </div>
-        </div>
-      </nav>
 
       <div className="pt-24 max-w-6xl mx-auto px-6">
         {/* Main Glassmorphic/Premium Container Card */}
@@ -170,7 +130,7 @@ export default async function ProductDetailPage({ params }: Params) {
 
             {product.images.length > 1 && (
               <div className="grid grid-cols-4 gap-3">
-                {product.images.slice(1).map((img, i) => (
+                {product.images.slice(1).map((img: any, i: number) => (
                   <div key={i} className="aspect-square bg-[#F5F5F5] rounded-xl overflow-hidden border border-[#E5E5E5] hover:border-[#0A0A0A] transition-colors cursor-pointer group/thumb">
                     <img src={img.imageUrl} alt={`${product.title} ${i + 2}`} className="w-full h-full object-cover group-hover/thumb:scale-110 transition-transform duration-300" />
                   </div>
@@ -186,7 +146,6 @@ export default async function ProductDetailPage({ params }: Params) {
               <div className="flex items-center gap-2 mb-4 flex-wrap">
                 {product.status === "available" ? (
                   <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
                     Tersedia
                   </span>
                 ) : (
@@ -215,8 +174,9 @@ export default async function ProductDetailPage({ params }: Params) {
                   <span className="text-3xl md:text-4xl font-black text-[#0A0A0A]">{formatPrice(product.price)}</span>
                 </div>
                 {product.isNegotiable && (
-                  <span className="inline-flex items-center gap-1 text-xs font-bold bg-[#FBDA00]/10 text-black px-3 py-1.5 rounded-xl border border-[#FBDA00]/30 animate-bounce">
-                    🤝 Bisa Nego
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold bg-[#FBDA00]/10 text-black px-3 py-1.5 rounded-xl border border-[#FBDA00]/30">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    Bisa Nego
                   </span>
                 )}
               </div>
@@ -232,7 +192,9 @@ export default async function ProductDetailPage({ params }: Params) {
               <div className="grid grid-cols-2 gap-3 mb-8 text-sm">
                 {product.codLocation && (
                   <div className="bg-white border border-[#E5E5E5] rounded-2xl p-4 flex items-start gap-2.5">
-                    <span className="text-lg">📍</span>
+                    <span className="text-[#0A0A0A] shrink-0 mt-0.5">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    </span>
                     <div>
                       <p className="text-[#ABABAB] text-[10px] font-bold uppercase tracking-wider mb-0.5">Lokasi COD</p>
                       <p className="font-semibold text-[#0A0A0A] leading-snug">{product.codLocation}</p>
@@ -240,21 +202,27 @@ export default async function ProductDetailPage({ params }: Params) {
                   </div>
                 )}
                 <div className="bg-white border border-[#E5E5E5] rounded-2xl p-4 flex items-start gap-2.5">
-                  <span className="text-lg">⏱️</span>
+                  <span className="text-[#0A0A0A] shrink-0 mt-0.5">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  </span>
                   <div>
                     <p className="text-[#ABABAB] text-[10px] font-bold uppercase tracking-wider mb-0.5">Masa Reservasi</p>
                     <p className="font-semibold text-[#0A0A0A]">{product.reservationDuration} Jam</p>
                   </div>
                 </div>
                 <div className="bg-white border border-[#E5E5E5] rounded-2xl p-4 flex items-start gap-2.5">
-                  <span className="text-lg">🏷️</span>
+                  <span className="text-[#0A0A0A] shrink-0 mt-0.5">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" /></svg>
+                  </span>
                   <div>
                     <p className="text-[#ABABAB] text-[10px] font-bold uppercase tracking-wider mb-0.5">Kategori</p>
                     <p className="font-semibold text-[#0A0A0A] capitalize leading-snug">{product.subCategory ?? product.category}</p>
                   </div>
                 </div>
                 <div className="bg-white border border-[#E5E5E5] rounded-2xl p-4 flex items-start gap-2.5">
-                  <span className="text-lg">👁️</span>
+                  <span className="text-[#0A0A0A] shrink-0 mt-0.5">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                  </span>
                   <div>
                     <p className="text-[#ABABAB] text-[10px] font-bold uppercase tracking-wider mb-0.5">Dilihat</p>
                     <p className="font-semibold text-[#0A0A0A]">{product.viewCount} Kali</p>

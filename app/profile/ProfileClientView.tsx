@@ -188,7 +188,10 @@ export default function ProfileClientView({
               </div>
 
               <div className="pt-4 border-t border-[#F5F5F5] space-y-3">
-                <h3 className="font-semibold text-[#0A0A0A] mb-1">📬 Integrasi Telegram</h3>
+                <h3 className="font-semibold text-[#0A0A0A] mb-1 flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                  Integrasi Telegram
+                </h3>
                 <p className="text-xs text-[#6B6B6B] leading-relaxed">
                   Dapatkan notifikasi langsung di Telegram untuk reservasi baru, penerimaan reservasi, & status COD.
                   Hubungkan dengan memasukkan Chat ID secara manual, atau **klik tombol di bawah ini** untuk menghubungkan
@@ -221,7 +224,7 @@ export default function ProfileClientView({
                     }}
                     className="bg-[#0A0A0A] text-white hover:bg-[#1a1a1a] font-semibold px-6 py-3 rounded-2xl text-sm shrink-0 flex items-center justify-center gap-2 transition-all active:scale-95"
                   >
-                    ⚡ Hubungkan Otomatis
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg> Hubungkan Otomatis
                   </button>
                 </div>
               </div>

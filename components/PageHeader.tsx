@@ -32,17 +32,17 @@ export function PageHeader({
   }, []);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-[#E5E5E5] h-16 flex items-center px-6 shadow-sm">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-[var(--background)]/80 backdrop-blur-xl border-b border-[var(--color-border)]/50 h-[72px] flex items-center px-6 transition-all duration-300">
       <div className={`${maxWidth} w-full mx-auto flex items-center justify-between gap-6`}>
         {/* Sisi Kiri: Circular Back Button & Stacked Contextual Breadcrumb + Title */}
-        <div className="flex items-center gap-3.5 min-w-0">
+        <div className="flex items-center gap-4 min-w-0">
           <Link
             href={backHref}
             title={`Kembali ke ${backLabel}`}
-            className="group flex items-center justify-center w-9 h-9 rounded-full border border-[#E5E5E5] bg-white hover:border-[#0A0A0A] hover:bg-[#FAF9F6]/30 hover:shadow-sm transition-all duration-200 active:scale-90 shrink-0"
+            className="group flex items-center justify-center w-10 h-10 rounded-full bg-white border border-[var(--color-border)] hover:border-[#0A0A0A] hover:bg-[#0A0A0A] hover:text-white transition-all duration-300 active:scale-90 shrink-0 shadow-sm"
           >
             <svg
-              className="w-4.5 h-4.5 text-[#6B6B6B] group-hover:text-[#0A0A0A] group-hover:-translate-x-0.5 transition-all duration-200"
+              className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform duration-300"
               fill="none"
               stroke="currentColor"
               strokeWidth="2.5"
@@ -52,11 +52,11 @@ export function PageHeader({
             </svg>
           </Link>
 
-          <div className="flex flex-col min-w-0 leading-none">
-            <span className="text-[9px] font-extrabold text-[#9B9B9B] uppercase tracking-widest truncate">
+          <div className="flex flex-col min-w-0 leading-tight">
+            <span className="text-[10px] font-black text-[var(--color-text-disabled)] uppercase tracking-[0.2em] truncate">
               {backLabel}
             </span>
-            <span className="text-sm font-bold text-[#0A0A0A] tracking-tight mt-0.5 truncate">
+            <span className="text-xl font-black text-[var(--foreground)] tracking-tighter truncate">
               {title}
             </span>
           </div>
@@ -67,16 +67,16 @@ export function PageHeader({
           {children && <div className="flex items-center gap-3">{children}</div>}
 
           {/* Pemisah antara children dan icons */}
-          {children && <div className="h-5 w-px bg-[#E5E5E5]" />}
+          {children && <div className="h-6 w-px bg-[var(--color-border)]" />}
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             {/* Shortcut Chat */}
             <Link
               href="/chat"
               title="Pesan Masuk"
-              className="relative p-2.5 rounded-full hover:bg-[#F5F5F5] text-[#6B6B6B] hover:text-[#0A0A0A] transition-all duration-200 flex items-center justify-center active:scale-95"
+              className="relative p-2.5 rounded-full hover:bg-[var(--color-surface-gray)] text-[var(--color-text-secondary)] hover:text-[var(--foreground)] transition-all duration-300 flex items-center justify-center active:scale-95 group"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <svg className="w-5.5 h-5.5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -84,7 +84,7 @@ export function PageHeader({
                 />
               </svg>
               {unreadChats > 0 && (
-                <span className="absolute top-1 right-1 bg-[#EF4444] text-white text-[9px] font-extrabold h-4 min-w-4 rounded-full flex items-center justify-center px-1 border-2 border-white shadow-sm">
+                <span className="absolute top-1 right-1 bg-[#EF4444] text-white text-[9px] font-black h-4.5 min-w-[18px] rounded-full flex items-center justify-center px-1 border-2 border-[var(--background)] shadow-sm animate-pulse">
                   {unreadChats}
                 </span>
               )}

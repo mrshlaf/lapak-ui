@@ -39,29 +39,35 @@ export default function AdminProductsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F5F5]">
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-[#E5E5E5] h-16 flex items-center px-6">
-        <div className="max-w-6xl w-full mx-auto flex items-center gap-4">
-          <Link href="/admin" className="text-[#6B6B6B] hover:text-[#0A0A0A] text-sm flex items-center gap-1.5 group">
-            <svg className="w-3.5 h-3.5 text-[#6B6B6B] group-hover:text-[#0A0A0A] group-hover:-translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-            </svg> Admin
-          </Link>
-          <span className="font-bold text-lg text-[#0A0A0A]">Manajemen Produk ({total})</span>
+    <div className="pt-28 max-w-7xl mx-auto px-6 py-8">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-10">
+        <div>
+          <h1 className="text-4xl font-black text-[#0A0A0A] tracking-tighter flex items-center gap-4">
+            <Link href="/admin" className="p-2 bg-white border border-[#E5E5E5] rounded-xl hover:border-[#0A0A0A] transition-all">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
+            </Link>
+            Produk Manajemen
+          </h1>
+          <p className="text-[#6B6B6B] font-medium mt-2">{total} produk terdaftar dalam marketplace.</p>
         </div>
-      </nav>
-
-      <div className="pt-16 max-w-6xl mx-auto px-6 py-8">
-        <div className="mb-6 flex justify-end">
-          <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Cari produk..."
-            className="bg-white border border-[#E5E5E5] rounded-full px-4 py-2 text-sm focus:outline-none focus:border-[#0A0A0A] w-64" />
+        <div className="relative w-full md:w-80">
+          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[#ABABAB]">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+          </div>
+          <input 
+            value={search} 
+            onChange={e => { setSearch(e.target.value); setPage(1); }} 
+            placeholder="Cari judul produk..."
+            className="w-full bg-white border border-[#E5E5E5] rounded-2xl pl-11 pr-4 py-3.5 text-sm focus:outline-none focus:border-[#0A0A0A] focus:shadow-md transition-all font-medium" 
+          />
         </div>
+      </div>
         <div className="space-y-3">
           {loading ? Array(5).fill(0).map((_, i) => <div key={i} className="bg-white h-20 rounded-2xl animate-pulse" />) :
             products.map((p) => (
               <div key={p.id} className="bg-white border border-[#E5E5E5] rounded-2xl p-4 flex items-center gap-4">
                 <div className="w-12 h-12 bg-[#F5F5F5] rounded-xl overflow-hidden shrink-0">
-                  {p.images[0] ? <img src={p.images[0].imageUrl} alt={p.title} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xl">📦</div>}
+                  {p.images[0] ? <img src={p.images[0].imageUrl} alt={p.title} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-[#ABABAB]"><svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg></div>}
                 </div>
                 <div className="flex-1 min-w-0">
                   <Link href={`/marketplace/${p.id}`} className="font-semibold text-[#0A0A0A] hover:text-[#6B6B6B] transition-colors truncate block">{p.title}</Link>
@@ -91,7 +97,6 @@ export default function AdminProductsPage() {
             </button>
           )}
         </div>
-      </div>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { verifySession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { redis } from "@/lib/redis";
 import { PageHeader } from "@/components/PageHeader";
 import { Footer } from "@/components/Footer";
 
@@ -24,14 +25,32 @@ export default async function MyProductsPage() {
   const session = token ? await verifySession(token) : null;
   if (!session) redirect("/login");
 
-  const products = await prisma.product.findMany({
-    where: { sellerId: session.userId },
-    orderBy: { createdAt: "desc" },
-    include: {
-      images: { where: { isPrimary: true }, take: 1 },
-      _count: { select: { reservations: true } },
-    },
-  });
+  const cacheKey = `my-products:${session.userId}`;
+  let products;
+
+  try {
+    const cached = await redis.get(cacheKey);
+    if (cached) products = JSON.parse(cached);
+  } catch (e) {
+    console.error("Redis get error:", e);
+  }
+
+  if (!products) {
+    products = await prisma.product.findMany({
+      where: { sellerId: session.userId },
+      orderBy: { createdAt: "desc" },
+      include: {
+        images: { where: { isPrimary: true }, take: 1 },
+        _count: { select: { reservations: true } },
+      },
+    });
+
+    try {
+      await redis.set(cacheKey, JSON.stringify(products), "EX", 30);
+    } catch (e) {
+      console.error("Redis set error:", e);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#F5F5F5] flex flex-col justify-between">
@@ -49,7 +68,9 @@ export default async function MyProductsPage() {
 
         {products.length === 0 ? (
           <div className="text-center py-24 bg-white rounded-3xl border border-[#E5E5E5]">
-            <div className="text-5xl mb-4">📦</div>
+            <div className="mb-4 text-gray-400">
+              <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+            </div>
             <h3 className="text-xl font-semibold text-[#0A0A0A] mb-2">Belum ada produk</h3>
             <p className="text-[#6B6B6B] mb-6">Mulai jual barang atau tawarkan jasamu</p>
             <Link href="/sell" className="bg-[#FBDA00] text-black font-semibold px-6 py-3 rounded-full hover:bg-[#FACC15] transition-colors">
@@ -58,14 +79,16 @@ export default async function MyProductsPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {products.map((p) => {
+            {products.map((p: any) => {
               const s = STATUS_MAP[p.status] ?? { label: p.status, color: "bg-gray-200 text-gray-800" };
               return (
                 <div key={p.id} className="bg-white rounded-2xl border border-[#E5E5E5] p-5 flex items-center gap-5">
                   <div className="w-16 h-16 bg-[#F5F5F5] rounded-xl overflow-hidden shrink-0">
                     {p.images[0] ? (
                       <img src={p.images[0].imageUrl} alt={p.title} className="w-full h-full object-cover" />
-                    ) : <div className="w-full h-full flex items-center justify-center text-2xl">📦</div>}
+                    ) : <div className="w-full h-full flex items-center justify-center text-[#ABABAB]">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                    </div>}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-[#0A0A0A] truncate">{p.title}</h3>

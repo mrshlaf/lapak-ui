@@ -12,13 +12,13 @@ type Reservation = {
   };
 };
 
-const STATUS_MAP: Record<string, { label: string; color: string; emoji: string }> = {
-  pending: { label: "Menunggu Seller", color: "bg-[#FBDA00] text-black", emoji: "⏳" },
-  accepted: { label: "Diterima", color: "bg-[#22C55E] text-white", emoji: "✅" },
-  rejected: { label: "Ditolak", color: "bg-red-100 text-red-700", emoji: "❌" },
-  cancelled: { label: "Dibatalkan", color: "bg-[#F5F5F5] text-[#6B6B6B]", emoji: "🚫" },
-  expired: { label: "Kedaluwarsa", color: "bg-[#F5F5F5] text-[#ABABAB]", emoji: "⌛" },
-  completed: { label: "Selesai", color: "bg-[#22C55E] text-white", emoji: "🎉" },
+const STATUS_MAP: Record<string, { label: string; color: string }> = {
+  pending: { label: "Menunggu Seller", color: "bg-[#FBDA00] text-black" },
+  accepted: { label: "Diterima", color: "bg-[#22C55E] text-white" },
+  rejected: { label: "Ditolak", color: "bg-red-100 text-red-700" },
+  cancelled: { label: "Dibatalkan", color: "bg-[#F5F5F5] text-[#6B6B6B]" },
+  expired: { label: "Kedaluwarsa", color: "bg-[#F5F5F5] text-[#ABABAB]" },
+  completed: { label: "Selesai", color: "bg-[#22C55E] text-white" },
 };
 
 function formatPrice(p: number) {
@@ -56,7 +56,9 @@ export default function OutgoingReservationsPage() {
           <div className="space-y-3">{Array(3).fill(0).map((_, i) => <div key={i} className="bg-white h-32 rounded-2xl animate-pulse" />)}</div>
         ) : reservations.length === 0 ? (
           <div className="text-center py-24 bg-white rounded-3xl border border-[#E5E5E5]">
-            <div className="text-5xl mb-4">🕐</div>
+            <div className="mb-4 text-gray-400">
+              <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            </div>
             <h3 className="text-xl font-semibold text-[#0A0A0A] mb-2">Belum ada reservasi</h3>
             <p className="text-[#6B6B6B] mb-6">Cari produk dan buat reservasi pertamamu</p>
             <Link href="/marketplace" className="bg-[#FBDA00] text-black font-semibold px-6 py-3 rounded-full hover:bg-[#FACC15] transition-colors">
@@ -66,7 +68,7 @@ export default function OutgoingReservationsPage() {
         ) : (
           <div className="space-y-4">
             {reservations.map((r) => {
-              const s = STATUS_MAP[r.status] ?? { label: r.status, color: "bg-gray-100 text-gray-700", emoji: "?" };
+              const s = STATUS_MAP[r.status] ?? { label: r.status, color: "bg-gray-100 text-gray-700" };
               const expires = new Date(r.expiresAt);
               const isExpired = expires < new Date();
               return (
@@ -75,12 +77,14 @@ export default function OutgoingReservationsPage() {
                     <div className="w-16 h-16 bg-[#F5F5F5] rounded-xl overflow-hidden shrink-0">
                       {r.product.images[0] ? (
                         <img src={r.product.images[0].imageUrl} alt={r.product.title} className="w-full h-full object-cover" />
-                      ) : <div className="w-full h-full flex items-center justify-center text-2xl">📦</div>}
+                      ) : <div className="w-full h-full flex items-center justify-center text-[#ABABAB]">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                      </div>}
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-1">
                         <Link href={`/marketplace/${r.product.id}`} className="font-semibold text-[#0A0A0A] hover:text-[#6B6B6B] transition-colors">{r.product.title}</Link>
-                        <span className={`text-xs font-bold px-3 py-1 rounded-full ${s.color}`}>{s.emoji} {s.label}</span>
+                        <span className={`text-xs font-bold px-3 py-1 rounded-full ${s.color}`}>{s.label}</span>
                       </div>
                       <p className="text-sm text-[#6B6B6B] mb-1">{formatPrice(r.product.price)}</p>
                       <p className="text-sm text-[#6B6B6B]">

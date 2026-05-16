@@ -43,6 +43,14 @@ export async function PUT(request: Request) {
       ...updatedUser,
       telegramChatId: updatedUser.telegramChatId ? updatedUser.telegramChatId.toString() : null,
     };
+    
+    // Invalidate Redis Cache
+    try {
+      const { redis } = await import("@/lib/redis");
+      await redis.del(`profile:${session.userId}`);
+      await redis.del(`dashboard:user:${session.userId}`);
+    } catch (e) { console.error(e); }
+
 
     return ok({ user: userResponse });
   } catch (error: any) {

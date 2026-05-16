@@ -176,7 +176,9 @@ export default function TransactionDetailPage() {
   if (!tx) {
     return (
       <div className="min-h-screen bg-[#F5F5F5] flex flex-col items-center justify-center gap-4">
-        <div className="text-4xl">❌</div>
+        <div className="text-gray-400">
+          <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+        </div>
         <p className="text-[#0A0A0A] font-semibold">Transaksi tidak ditemukan</p>
         <Link href="/transactions" className="text-sm font-semibold text-[#0A0A0A] bg-white border border-[#E5E5E5] px-5 py-2.5 rounded-full hover:border-[#0A0A0A] hover:bg-[#FAF9F6]/30 transition-all">Kembali</Link>
       </div>
