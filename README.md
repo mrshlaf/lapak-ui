@@ -1,213 +1,142 @@
-# 🚀 Lapak UI — Marketplace & Community Platform for UI Students
+# Lapak UI
 
-[![Next.js](https://img.shields.io/badge/Next.js-16.2.5-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
-[![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=for-the-badge&logo=prisma)](https://www.prisma.io/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Supabase-336791?style=for-the-badge&logo=postgresql)](https://www.postgresql.org/)
-[![Redis](https://img.shields.io/badge/Redis-Upstash-DC382D?style=for-the-badge&logo=redis)](https://upstash.com/)
+Lapak UI is a web-based peer-to-peer marketplace and social community platform designed specifically for students at Universitas Indonesia. The platform integrates a local product listing directory, a secure and structured cash-on-delivery (COD) reservation engine, and an internal campus social feed.
 
-**Lapak UI** adalah platform marketplace dan social community berbasis web yang dirancang khusus untuk mahasiswa Universitas Indonesia. Platform ini menyatukan tiga ekosistem dalam satu produk: marketplace barang & jasa, sistem reservasi COD terstruktur, dan social feed komunitas kampus.
-
-Proyek Akhir ini dibangun sebagai pemenuhan tugas akhir **Praktikum Sistem Basis Data, FTUI 2025/2026** oleh Kelompok Lapak UI.
+The system is built to minimize the risk of transaction ghosting while enabling smooth and verified digital and physical exchanges within the campus ecosystem.
 
 ---
 
-## 📖 Skenario Database & Aplikasi [Diwajibkan]
+## Component Architecture
 
-Aplikasi **Lapak UI** mempermudah kehidupan kampus mahasiswa UI dengan meminimalkan risiko penipuan saat transaksi bekas dan mempermudah akses informasi internal kampus melalui skenario alur berikut:
+The platform consists of four primary integrated systems:
 
-1. **Registrasi & Verifikasi Kampus:** Mahasiswa mendaftar menggunakan email kampus. Sistem menyimpan detail fakultas untuk kebutuhan verifikasi dan kredibilitas.
-2. **Siklus Produk (Marketplace):** 
-   - Seller mengunggah barang/jasa dengan deskripsi, harga, fakultas lokasi, opsi negosiasi, dan foto pendukung.
-   - Pembeli dapat melakukan pencarian produk dengan filter kategori, harga, dan lokasi fakultas seller untuk mempermudah COD.
-   - Pembeli dapat menambahkan produk favorit ke **Wishlist**.
-3. **Siklus Reservasi (Sistem Anti-Ghosting):**
-   - Pembeli mengklik **Reservasi** pada barang yang diminati. Sistem langsung mengubah status barang menjadi `reserved`.
-   - Reservasi memiliki batas kedaluwarsa otomatis (timer 2j/6j/12j/24j) menggunakan **Redis TTL**. Jika habis, status barang otomatis kembali menjadi `available`.
-   - Seller dapat menerima atau menolak reservasi. Jika diterima, status berubah menjadi `on_progress` untuk proses COD.
-4. **Siklus Transaksi & COD:**
-   - Setelah pertemuan tatap muka (COD), seller menandai transaksi selesai. Sistem mengubah status barang menjadi `completed` (terjual) dan mencatat transaksi secara historis.
-   - Pembeli dapat memberikan review/rating kepada seller untuk membangun reputasi komunitas.
-5. **Komunitas Kampus (Social Feed):**
-   - Mahasiswa dapat membagikan postingan (text & image) di forum komunitas untuk berdiskusi, bertanya info kosan, atau mempromosikan barang.
-   - Mahasiswa lain dapat memberikan Like dan Komentar pada postingan secara realtime.
-6. **Sistem Notifikasi Multi-Channel:**
-   - Setiap aksi penting (reservasi masuk, pesan chat baru, dll.) akan memicu antrean notifikasi.
-   - Notifikasi dikirimkan melalui 3 saluran: **In-app Notification**, **Email (Resend API)**, dan **Telegram Bot (@lapakui_bot)**.
+* **Marketplace Directory:** Allows verified student sellers to list products or services under specific campus faculties, price ranges, and conditions. Buyers can filter listings by proximity to their faculty to facilitate physical COD meetings.
+* **Reservation Engine (Redis-powered):** Manages buyer product reservations. Once reserved, the product state shifts to "Reserved" in PostgreSQL, and a matching key with a Time-To-Live (TTL) is created in Redis. If the seller does not accept the reservation within the chosen timeframe (2, 6, 12, or 24 hours), the Redis expiration event automatically reverts the product status back to "Available".
+* **Real-time Notifier:** Dispatches alerts (in-app notifications and instant mobile messages via a dedicated Telegram Bot `@lapakui_bot`) upon critical changes in the transactional state.
+* **Admin Dashboard:** A central panel providing administrators with consolidated platform statistics (user volume, active listings, transaction logs, and feed moderation options) served with ultra-low latency through Redis caching.
 
 ---
 
-## 📊 Basis Data & Skema (PostgreSQL)
+## Technical Stack
 
-Platform ini mengelola **8 tabel relasional** utama yang ter-normalisasi penuh hingga **3NF** di dalam PostgreSQL (Supabase):
-
-```
-+------------------+       +------------------+       +------------------+
-|      User        |       |     Product      |       |   ProductImage   |
-+------------------+       +------------------+       +------------------+
-| - id (PK)        |1     *| - id (PK)        |1     *| - id (PK)        |
-| - email (Unique) |-------| - sellerId (FK)  |-------| - productId (FK) |
-| - name           |       | - title          |       | - imageUrl       |
-| - passwordHash   |       | - price          |       +------------------+
-+------------------+       | - status         |
-        |                  +------------------+
-        |1                          |1
-        |                           |
-        |                           |*
-        |*                          +------------------+
-        |--------------------------------------------|  |   Reservation    |
-        |                                            |  +------------------+
-        |*                                           +--| - id (PK)        |
-+------------------+                                    | - buyerId (FK)   |
-|   Transaction    |*                                   | - productId (FK) |
-+------------------+                                    | - status         |
-| - id (PK)        |                                    +------------------+
-| - buyerId (FK)   |
-| - productId (FK) |
-| - amount         |
-+------------------+
-```
+* **Frontend and Server:** Next.js 16.2.5 (App Router), React, TypeScript, Tailwind CSS
+* **Database and ORM:** PostgreSQL (Supabase), Prisma ORM
+* **Caching and State Management:** Redis (Upstash)
+* **API Integrations:** Telegram Bot API
+* **Deployment:** Vercel (Production environments)
 
 ---
 
-## ⚡ Justifikasi Database Pendukung (Upstash Redis) [Nilai Tambahan]
+## Database Scenarios and System Lifecycle
 
-Sesuai ketentuan SOP Poin 8, kami menggunakan **Upstash Redis** sebagai basis data sekunder untuk meningkatkan kualitas performa dan fungsionalitas aplikasi dengan alasan teknis berikut:
+### 1. User Registration and Verification
+Students sign up using their official university email addresses. The system parses and stores their department or faculty information, ensuring all sellers and buyers are authentic campus members before allowing transactional access.
 
-1. **State Management & Reservasi COD (Anti-Ghosting):**
-   Mencegah *seller* dirugikan oleh pembeli yang memesan tetapi tidak kunjung membalas (*ghosting*). Reservasi disimpan di Redis dengan fitur **TTL (Time-To-Live)**. Begitu waktu kedaluwarsa habis, Redis memicu event untuk mengembalikan status produk ke `available` secara otomatis tanpa membebani query PostgreSQL.
-2. **Caching Feed & Statistik Admin:**
-   Data statistik dashboard admin (seperti hitung total user, produk, postingan) serta feed marketplace di-cache di Redis selama 5-10 menit. Ini mengurangi konsumsi resource database PostgreSQL secara signifikan saat trafik tinggi dan mempercepat waktu muat halaman dari **~1.2 detik menjadi <50 milidetik**.
-3. **Sistem Resilience Tinggi:**
-   Inisialisasi Redis di dalam file `lib/redis.ts` dilindungi oleh penanganan error modern (*resilient fallback*). Jika koneksi Redis terputus, sistem akan otomatis beralih menggunakan query langsung ke database utama PostgreSQL, sehingga aplikasi **100% aman dari crash (zero downtime)**.
+### 2. Product Upload and Discovery
+Sellers create listings by supplying a title, price, descriptions, multiple product images, condition tags, negotiable flags, and preferred faculty locations for COD. Buyers browse the catalog using faceted search filters to isolate products located near their own departments.
+
+### 3. Anti-Ghosting COD Reservation Flow
+When a buyer clicks "Reserve", the listing is locked. If the seller approves, a COD schedule is established, and Telegram notifications are fired. 
+If the time limit expires before seller approval or transaction completion, the Upstash Redis expiration callback automatically unlocks the listing in PostgreSQL.
+
+### 4. Transaction Resolution
+Upon meeting physically, the seller marks the transaction as "Completed". The database changes the product status to "Completed", logs the transaction details for historical analysis, and prompts the buyer to leave a review and rating for the seller.
 
 ---
 
-## 📊 Diagram Arsitektur & Perancangan [Diwajibkan]
+## Caching Strategy and Database Resilience
 
-Semua berkas diagram perancangan proyek akhir kami kumpulkan di direktori `/diagrams/`:
+Lapak UI implements a hybrid database model utilizing PostgreSQL for persistent transactional storage and Redis for high-performance memory operations.
 
-### 1. Unified Modeling Language (UML)
-Diagram Use Case dan Sequence Diagram untuk menggambarkan interaksi pengguna (Pembeli, Penjual, Admin) terhadap sistem Lapak UI.
-*   📄 **File UML:** [diagrams/uml-lapakui.png](file:///c:/Github/lapak-ui/diagrams/uml-lapakui.png)
+### Secondary Database Caching (Upstash Redis)
+* **Transaction Expiry:** Redis handles the TTL counters for COD reservations. This keeps high-frequency timer state mutations out of the core PostgreSQL relational engine.
+* **Admin Statistics Caching:** Analytical queries (e.g., aggregate user counts, transaction volumes) are cached in Redis for 10 minutes, reducing Supabase database resource utilization.
+* **Resilience Fallback Layer:** The connection helper handles potential caching service outages. If the Redis server is unreachable, the system triggers a fallback proxy, conducting queries directly against the PostgreSQL primary database to ensure 100% application uptime.
+
+---
+
+## System Design and Diagrams
+
+### 1. Unified Modeling Language (UML) Use Case
+Shows the operational boundaries and actor interactions for students, sellers, buyers, and administrators.
+
+![UML Diagram](diagrams/uml-lapakui.png)
 
 ### 2. Entity Relationship Diagram (ERD)
-Representasi visual skema database relasional dengan kardinalitas lengkap (One-to-Many, Many-to-Many) antara tabel User, Product, Reservation, Transaction, Post, Comment, dan Notification.
-*   📄 **File ERD:** [diagrams/erd-lapakui.png](file:///c:/Github/lapak-ui/diagrams/erd-lapakui.png)
+The relational database layout normalized to Third Normal Form (3NF) to guarantee structural integrity and zero data redundancy.
 
-### 3. Flowchart Aplikasi
-Alur logis operasional aplikasi dari proses pendaftaran, transaksi marketplace, masa aktif reservasi Redis, hingga forum komunitas.
-*   📄 **File Flowchart:** [diagrams/flowchart-lapakui.png](file:///c:/Github/lapak-ui/diagrams/flowchart-lapakui.png)
+![ERD Diagram](diagrams/erd-lapakui.png)
+
+### 3. System Flowchart
+Represents the structural data flow, decision nodes, and the asynchronous Redis expiration event triggers.
+
+![Flowchart Diagram](diagrams/flowchart-lapakui.png)
 
 ---
 
-## 💻 Panduan Instalasi & Menjalankan Aplikasi
+## Installation and Setup Guide
 
-Ikuti panduan berikut untuk menjalankan proyek Lapak UI di lingkungan lokal Anda:
+### Prerequisites
+* Node.js version 18.0.0 or higher
+* PostgreSQL database instance
+* Upstash Redis database instance
 
-### Prerequisites (Prasyarat)
-*   Node.js versi 18 ke atas.
-*   Database PostgreSQL (Supabase sangat disarankan).
-*   Instance Redis (Upstash Redis sangat disarankan).
+### Quick Start Setup:
 
-### Langkah-langkah Setup:
-
-1. **Clone Repository:**
+1. **Clone the repository:**
    ```bash
    git clone https://github.com/mrshlaf/lapak-ui.git
    cd lapak-ui
    ```
 
-2. **Instalasi Dependensi:**
+2. **Install node modules:**
    ```bash
    npm install
    ```
 
-3. **Konfigurasi Environment Variable (`.env`):**
-   Buat berkas bernama `.env` di direktori utama (root) proyek Anda dan isi sebagai berikut:
+3. **Configure the Environment File (.env):**
+   Create a `.env` file in the root directory and insert your credentials:
    ```env
-   # Koneksi Database PostgreSQL (Port 6543 untuk PgBouncer Transaction Pooler)
    DATABASE_URL="postgresql://postgres.snppudadetnbpwolsnor:ABYsiapSBD.789@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
-
-   # Koneksi Upstash Redis Caching
    REDIS_URL="rediss://default:gQAAAAAAAe64AAIgcDIzM2Y2MjJlOTZjOWI0MDc1OTU4OTc4OTQ5Yjk2Mjk4Yg@inviting-airedale-126648.upstash.io:6379"
-
-   # Kunci Keamanan
    JWT_SECRET="super-secret-jwt-key-for-lapak-ui"
-   NEXT_PUBLIC_APP_URL="http://localhost:3000"
-
-   # Integrasi Notifikasi
    TELEGRAM_BOT_TOKEN="8658363649:AAF9M4SZta_kz_hixSnYYgZpLRPFYqzd7jk"
    TELEGRAM_BOT_USERNAME="lapakui_bot"
-   RESEND_API_KEY="re_your_resend_api_key"
+   NEXT_PUBLIC_APP_URL="https://lapak-ui.vercel.app"
    ```
 
-4. **Inisialisasi Skema Database (Prisma):**
+4. **Sync the Database Schema:**
    ```bash
    npx prisma db push
    ```
 
-5. **Jalankan Aplikasi Mode Development:**
+5. **Start the Development Server:**
    ```bash
    npm run dev
    ```
-   Aplikasi kini dapat diakses secara lokal di alamat [http://localhost:3000](http://localhost:3000).
+   Open your browser and navigate to `http://localhost:3000`.
 
 ---
 
-## 📥 Panduan Ekspor Database Dump (.sql) [Diwajibkan]
+## Exporting the Relational Schema (Database Dump)
 
-Sesuai ketentuan SOP Poin 9, Anda wajib menyertakan file dump database (`.sql`). Berikut cara melakukan ekspor skema dan data database Supabase Anda:
-
-Jalankan perintah berikut di terminal Anda menggunakan utility `pg_dump` bawaan PostgreSQL:
+To export the active database schemas and relational seeds to a `.sql` script, execute the following command:
 
 ```bash
 pg_dump -h aws-1-ap-southeast-1.pooler.supabase.com -U postgres.snppudadetnbpwolsnor -d postgres -p 5432 -F p -f database/dump.sql
 ```
-*Masukkan password database:* `ABYsiapSBD.789` saat diminta. File dump akan otomatis tersimpan di dalam folder `database/dump.sql`.
 
 ---
 
-## 📈 Laporan Progress Mingguan (Progress Report Log)
+## Development Progress Report
 
-> [!IMPORTANT]
-> Sesuai **Peraturan Pengerjaan SOP Poin 2**, kelompok diwajibkan melaporkan progress minimal 2 kali selama masa pengerjaan dengan mentor aslab untuk menghindari **sanksi pengurangan nilai 20%**.
+### Progress Log: System Verification and Mentoring Session
+Focuses on full database integration, schema verification, Redis caching setup, and end-to-end transaction testing with the assistant mentor.
 
-### 📝 Log 1: Perencanaan Skema & Desain Basis Data
-*   **Tanggal:** 5 Mei 2025 (Pukul 14:00 - 14:30 WIB)
-*   **Platform:** Online Zoom Meeting
-*   **Agenda & Hasil:** 
-    *   Pengisian spreadsheet rencana proyek akhir Lapak UI dan mendapatkan persetujuan ide dari asisten mentor.
-    *   Diskusi perancangan awal skema tabel relasional (3NF) PostgreSQL.
-*   **Dokumentasi:** [Lihat Foto Progress 1](file:///c:/Github/lapak-ui/progress/progress-1.png)
-
-### 📝 Log 2: Uji Coba Caching Redis & Integrasi Multi-Channel
-*   **Tanggal:** 12 Mei 2025 (Pukul 16:00 - 16:45 WIB)
-*   **Platform:** Offline di Lab Jaringan Komputer FTUI
-*   **Agenda & Hasil:**
-    *   Demonstrasi fitur *caching* dengan Upstash Redis untuk dashboard statistik admin.
-    *   Evaluasi ketahanan sistem notifikasi (Webhook Telegram Bot `@lapakui_bot` & integrasi Calendar).
-*   **Dokumentasi:** [Lihat Foto Progress 2](file:///c:/Github/lapak-ui/progress/progress-2.png)
+![Progress Report](progress/progress-lapakui.png)
 
 ---
 
-## 📁 Kelengkapan Berkas Pengumpulan (Submission Checklist)
+## License
 
-Sebelum melakukan pengumpulan di Github, pastikan berkas-berkas berikut telah tersedia:
-
-*   [x] **Source Code Utama** (Next.js & Prisma Configuration)
-*   [x] **Diagram ERD** di `/diagrams/erd-lapakui.png`
-*   [x] **Diagram UML** di `/diagrams/uml-lapakui.png`
-*   [x] **Diagram Flowchart** di `/diagrams/flowchart-lapakui.png`
-*   [x] **File Dump Database (.sql)** di `/database/dump.sql`
-*   [x] **PPT Laporan Proyek Akhir** di `/presentation/laporan-lapakui.pptx`
-*   [x] **README.md** terstruktur sesuai format standar SOP.
-
----
-
-## 👨‍🏫 Struktur Kepengurusan Praktikum SBD
-*   **Penanggung Jawab 1:** Deandro Najwan Ahmad Syahbanna (Teknik Komputer 2023)
-*   **Penanggung Jawab 2:** Musyaffa Iman Supriadi (Teknik Komputer 2023)
-
----
-Developed with ❤️ by Kelompok Lapak UI for Universitas Indonesia. Licensed under [MIT License](LICENSE).
+This project is licensed under the MIT License - see the LICENSE file for details.
